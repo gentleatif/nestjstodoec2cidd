@@ -33,7 +33,8 @@ async function bootstrap(): Promise<INestApplication> {
     }),
   );
 
-  // Cookie parser middleware
+  // Cookie parser middleware (default export types may be unresolved)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- cookie-parser default export
   nestApp.use(cookieParser());
 
   nestApp.enableCors({
@@ -76,8 +77,8 @@ const bootstrapPromise = bootstrap();
  * 👉 Local mode (`yarn start:dev` or `nest start`)
  */
 if (process.env.IS_OFFLINE !== 'true') {
-  bootstrapPromise.then((nestApp) => {
-    nestApp.listen(APP_PORT, () =>
+  void bootstrapPromise.then((nestApp) => {
+    void nestApp.listen(APP_PORT, () =>
       console.log(`🚀 Server running at http://localhost:${APP_PORT}`),
     );
   });
@@ -98,15 +99,21 @@ export const handler: Handler = async (
 
   // 🌐 Otherwise, assume normal API Gateway / Express event.
   // Initialize serverlessExpress handler on the first invocation and cache it.
-  server =
-    server ?? serverlessExpress({ app: app.getHttpAdapter().getInstance() });
+  if (server == null) {
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- getInstance() returns Express app, serverlessExpress accepts it */
+    const expressApp = app.getHttpAdapter().getInstance();
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- serverlessExpress return typed as Handler */
+    server = serverlessExpress({ app: expressApp }) as Handler;
+  }
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call -- server is Handler, serverless-express types are loose */
   return server(event, context, callback);
 };
 
 /**
  * 👉 Separate Lambda handler for scheduled raffle status updates.
  */
-export const updateRaffleStatusHandler: Handler = async (event: any) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Lambda handler signature requires event param
+export const updateRaffleStatusHandler: Handler = async (_event: any) => {
   // Ensure the application is bootstrapped before getting services.
   app = app ?? (await bootstrapPromise);
   return {
