@@ -111,6 +111,6 @@ export const updateRaffleStatusHandler: Handler = async (event: any) => {
   app = app ?? (await bootstrapPromise);
   return {
     statusCode: 200,
-    body: JSON.stringify({ message: 'Hello World from NestJS!' }),
+    body: JSON.stringify({ message: 'Hello World from NestJS Atif!' }),
   };
 };
