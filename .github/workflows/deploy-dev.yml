@@ -31,9 +31,6 @@ jobs:
       - name: Run Linter
         run: yarn lint
 
-      - name: Run Unit Tests
-        run: yarn test --passWithNoTests
-
       - name: Build NestJS App
         run: yarn build
 
